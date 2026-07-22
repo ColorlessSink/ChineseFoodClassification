@@ -1,0 +1,9 @@
+{
+  "model": "C:\\Users\\Bill\\.cache\\huggingface\\hub\\models--OFA-Sys--chinese-clip-vit-base-patch16\\snapshots\\f4a64596bbcf9a2a94591b74b9dc39b2e4e77e3e",
+  "template": "一张{c}的照片",
+  "split": "test",
+  "n_images": 400,
+  "n_classes": 20,
+  "top1": 78.75,
+  "top5": 92.75
+}
