@@ -3,12 +3,10 @@
 ---
 流程：
   1. 读取 dataset_20cls/classes.csv，拿到 20 个中文菜名
-  2. 用单一 prompt 模板 "一张{菜名}的照片" 把菜名变成文本，过文本编码器得到 [20, D]
+  2. 用 prompt 模板如 "一张{菜名}的照片" 把菜名变成文本，过文本编码器得到 [20, D]
   3. 读取 test/ 下每张图片，过图像编码器得到 [N, D]
-  4. 计算图片与 20 个文本的余弦相似度，取 argmax → Top-1；取前5 → Top-5
+  4. 计算图片与 20 个文本的余弦相似度，计算 Top-1 和 Top-5
   5. 输出 Top-1 / Top-5 准确率，并保存逐图预测到 results/
-
-注：本脚本暂时只跑了单一模板
 '''
 
 import os, time, json
@@ -33,8 +31,8 @@ BATCH_SIZE = 16
 device = "cuda"      # 在 gpu 上运行
 
 
-class Main(object):
-    # 主程序类
+class ZeroShot(object):
+    # 零样本分类主程序类
     def __init__(self, model, data_dir):
         # 加载模型
         self.model = ChineseCLIPModel.from_pretrained(model).to(device)
@@ -67,7 +65,7 @@ class Main(object):
 
             return text_feats
 
-    def encode_pic(self, split, batch_size):
+    def gather_pic(self, split):
         # 收集测试集图片路径
         self.split = split
         split_dir = os.path.join(self.data_dir, split)
@@ -81,12 +79,14 @@ class Main(object):
                 if j.lower().endswith((".jpg", ".jpeg", ".png")):
                     self.img_paths.append(os.path.join(fpath, j))
                     self.labels.append(index)
+        return self.img_paths, self.labels
 
+    def encode_pic(self, paths, batch_size):
         # 批量编码图片特征
         all_img_feats = []
         self.t0 = time.time()
-        for i in range(0, len(self.img_paths), batch_size):
-            batch_paths = self.img_paths[i:i+batch_size]
+        for i in range(0, len(paths), batch_size):
+            batch_paths = paths[i:i+batch_size]
             imgs = [Image.open(p).convert("RGB") for p in batch_paths]
             
             with torch.no_grad():
@@ -101,7 +101,7 @@ class Main(object):
                 feats = feats / feats.norm(dim=-1, keepdim=True)
                 all_img_feats.append(feats)
             if (i // BATCH_SIZE) % 5 == 0:
-                print(f"   {i+len(batch_paths)}/{len(self.img_paths)}  用时 {time.time()-self.t0:.0f}s")
+                print(f"   {i+len(batch_paths)}/{len(paths)}  用时 {time.time()-self.t0:.0f}s")
         
         img_feats = torch.cat(all_img_feats, dim=0)     # [N, 512]
         return img_feats
@@ -123,7 +123,7 @@ class Main(object):
                     "correct": int(self.labels[i] == pred),
                 })
             pd.DataFrame(pred_rows).to_csv(
-                os.path.join(output, f"zeroshot_{self.split}_preds.csv"), index=False, encoding="utf-8-sig")
+                output, index=False, encoding="utf-8-sig")
 
         return logits
 
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     os.makedirs(RESULT_DIR, exist_ok=True)
 
     print("1. 加载 Chinese-CLIP 模型：")
-    mod = Main(MODEL_NAME, DATA_DIR)
+    mod = ZeroShot(MODEL_NAME, DATA_DIR)
     print(f"   模型路径: {mod.model}")
 
     texts = []
@@ -158,14 +158,15 @@ if __name__ == "__main__":
         print(f"   文本特征 shape: {text_feats[i].shape}")
 
     print(f"3. 批量编码图片特征 (batch={BATCH_SIZE})：")
-    pic_feats = mod.encode_pic(SPLIT, BATCH_SIZE)
+    pic_paths, pic_labels = mod.gather_pic(SPLIT)
+    pic_feats = mod.encode_pic(pic_paths, BATCH_SIZE)
     print(f"   共 {len(mod.img_paths)} 张测试图, {len(set(mod.labels))} 类")
     print(f"   图片特征 shape: {pic_feats.shape}  总用时 {time.time()-mod.t0:.0f}s")
 
     print(f"4. 计算相似度")
     simularity = []
     for i in range(len(TEMPLATE)):
-        simularity.append(mod.calc_simularity(text_feats[i], pic_feats, RESULT_DIR))
+        simularity.append(mod.calc_simularity(text_feats[i], pic_feats, os.path.join(RESULT_DIR, "zeroshot_"+str(i)+"_preds.csv")))
     
     print(f"5. 计算准确率")
 
@@ -185,11 +186,11 @@ if __name__ == "__main__":
     print("==========================")
 
     summary = {
-        "model": MODEL_NAME, "template": TEMPLATE[0], "split": SPLIT,
+        "model": MODEL_NAME, "split": SPLIT,
         "n_images": len(mod.img_paths), "n_classes": len(mod.names_zh),
-        "top1": round(top1_acc[0]*100, 2), "top5": round(top5_acc[0]*100, 2),
+        "results": [{"template": TEMPLATE[i], "top1": round(top1_acc[i]*100, 2), "top5": round(top5_acc[i]*100, 2)} for i in range(len(TEMPLATE))]
     }
     with open(os.path.join(RESULT_DIR, f"zeroshot_{SPLIT}_summary.json"), "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
-    print(f"\n预测明细已保存: results/zeroshot_{SPLIT}_preds.csv")
+    print(f"\n预测明细已保存: results/zeroshot_*_preds.csv")
     print(f"结果摘要已保存: results/zeroshot_{SPLIT}_summary.json")
