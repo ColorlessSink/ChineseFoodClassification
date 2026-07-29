@@ -6,7 +6,7 @@
   "n_classes": 20,
   "results": {
     "template": "一张{c}的照片",
-    "top1": 92.5,
+    "top1": 91.5,
     "top5": 99.25
   }
 }

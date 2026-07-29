@@ -88,17 +88,7 @@ class LoRA(ZeroShot):
         self.names_zh = self.classes_df["zh"].tolist()
         self.class_idx = self.classes_df["idx"].tolist()
 
-
-if __name__ == "__main__":
-    # 准备好processor和dataset
-    processor = ChineseCLIPProcessor.from_pretrained(MODEL_NAME)
-    dataset = FoodDataset(DATA_DIR, split=SPLIT, transform=None)
-
-    dataloader = DataLoader(dataset, batch_size=16, shuffle=True, drop_last=True, 
-                            collate_fn=lambda BATCH: collate_fn(BATCH, proc=processor), num_workers=0)
-
-    # 加载模型，加载过程中曾出现内存不足的报错，所以加上了low_cpu_mem_usage
-    model = ChineseCLIPModel.from_pretrained(MODEL_NAME, low_cpu_mem_usage=True).to(device)
+def loraTrain(model, processor, dataloader, result_dir, name, epoch=EPOCH):
     model.requires_grad_(False)     # 冻结参数
 
     config = pf.LoraConfig(r=8,      # 低秩矩阵的秩
@@ -157,8 +147,22 @@ if __name__ == "__main__":
         if val_acc > best_acc:
             # 更新并保存
             best_acc = val_acc
-            model.save_pretrained(os.path.join(RESULT_DIR, "lora_adapter")) 
+            model.save_pretrained(os.path.join(result_dir, name)) 
             print("新的最佳已保存")
+
+
+if __name__ == "__main__":
+    # 准备好processor和dataset
+    processor = ChineseCLIPProcessor.from_pretrained(MODEL_NAME)
+    dataset = FoodDataset(DATA_DIR, split=SPLIT, transform=None)
+
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=True, drop_last=True, 
+                            collate_fn=lambda BATCH: collate_fn(BATCH, proc=processor), num_workers=0)
+
+    # 加载模型，加载过程中曾出现内存不足的报错，所以加上了low_cpu_mem_usage
+    model = ChineseCLIPModel.from_pretrained(MODEL_NAME, low_cpu_mem_usage=True).to(device)
+    
+    loraTrain(model, processor, dataloader, RESULT_DIR, "lora_adapter")
 
 
 
