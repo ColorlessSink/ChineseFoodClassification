@@ -1,12 +1,12 @@
 '''
-任务2：VLM 零样本分类基线 (选取的VLM是Chinese-CLIP)
+任务2：VLM零样本分类基线 (选取的VLM是Chinese-CLIP)
 ---
 流程：
-  1. 读取 dataset_20cls/classes.csv，拿到 20 个中文菜名
-  2. 用 prompt 模板如 "一张{菜名}的照片" 把菜名变成文本，过文本编码器得到 [20, D]
-  3. 读取 test/ 下每张图片，过图像编码器得到 [N, D]
-  4. 计算图片与 20 个文本的余弦相似度，计算 Top-1 和 Top-5
-  5. 输出 Top-1 / Top-5 准确率，并保存逐图预测到 results/
+  1. 读取dataset_20cls/classes.csv，拿到20个中文菜名
+  2. 用prompt模板如"一张{菜名}的照片"把菜名变成文本，通过文本编码器得到[20, D]
+  3. 读取test/下每张图片，过图像编码器得到[N, D]
+  4. 计算图片与20个文本的余弦相似度，计算Top-1和Top-5
+  5. 输出Top-1/Top-5准确率，并保存逐图预测到results/
 '''
 
 import os, time, json
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         top1_acc.append(mod.calc_accuracy(simularity[i], mod.labels, 1))
         top5_acc.append(mod.calc_accuracy(simularity[i], mod.labels, 5))
     
-    print("\n========== 结果 ==========")
+    print("\n==========结果==========")
     print(f"模型: {MODEL_NAME}")
     print(f"评估集: {SPLIT} ({len(mod.img_paths)} 张)\n")
     for i in range(len(TEMPLATE)):

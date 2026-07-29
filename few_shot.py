@@ -2,12 +2,12 @@
 任务3-1：Few-shot学习性能提升
 ---
 流程：
-  1. 读取 dataset_20cls/classes.csv，拿到 20 个中文菜名
-  2. 每类从 train 选 K 张图片作为支持集
+  1. 读取dataset_20cls/classes.csv，拿到 20 个中文菜名
+  2. 每类从train选K张图片作为支持集
   3. 用图像编码器提取支持集特征
-  4. 每类特征求平均，得到类别 prototype
-  5. 测试图像与 prototype 计算预先相似度
-  5. 输出 Top-1 / Top-5 准确率，与 baseline 对比并保存结果到 results/
+  4. 每类特征求平均，得到类别prototype
+  5. 测试图像与prototype计算预先相似度
+  5. 输出Top-1/Top-5准确率，与baseline对比并保存结果到results/
 '''
 
 import os, time, json, random
@@ -43,6 +43,7 @@ class FewShot(ZeroShot):
         super().__init__(model, data_dir)
 
     def sample_support_set(self, k, seed):
+        # 根据种子随机挑选k-shot支持集
         random.seed(seed)
 
         support_path = []
@@ -56,7 +57,7 @@ class FewShot(ZeroShot):
         return support_path, support_labels
 
     def build_prototypes(self, paths, labels, batch_size):
-        # 编码 few-shot 支持集图片
+        # 编码few-shot支持集图片
         support_feats = self.encode_pic(paths, batch_size)
         support_labels_t = torch.tensor(labels).to(device)
 
@@ -71,7 +72,7 @@ class FewShot(ZeroShot):
         return prototypes
 
     def calc_sim_prototypes(self, prototypes, pic_feats, output=''):
-        # 计算测试图像与 prototype 的相似度
+        # 计算测试图像与prototype的相似度
         logits = 100.0 * pic_feats @ prototypes.T
 
         if output != '':
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     top1_acc = mod.calc_accuracy(logits, test_labels, 1)
     top5_acc = mod.calc_accuracy(logits, test_labels, 5)
 
-    print("\n========== 结果 ==========")
+    print("\n==========结果==========")
     print(f"模型: {MODEL_NAME}")
     print(f"评估集: {SPLIT} ({len(mod.img_paths)} 张)\n")
     print(f"Baseline Top-1 准确率: {BASELINE_TOP1}%")
