@@ -1,0 +1,13 @@
+torch
+transformers
+peft
+accelerate
+datasets
+pandas
+numpy
+Pillow
+opencv-python
+scikit-learn
+matplotlib
+seaborn
+openpyxl

@@ -20,10 +20,10 @@ test 集 400 张、20 类的最终结果：
 - Python 3.13
 - torch（CUDA 版，本机为 RTX 4050 Laptop 6GB 显存）
 - transformers、peft、accelerate、datasets
-- opencv-python、seaborn、scikit-learn、pandas、Pillow
+- opencv-python、scikit-learn、matplotlib、seaborn、pandas、Pillow
 
 ```bash
-pip install torch transformers peft accelerate datasets opencv-python seaborn scikit-learn pandas pillow
+pip install -r requirements.txt
 ```
 
 Chinese-CLIP 模型 `OFA-Sys/chinese-clip-vit-base-patch16` 需提前下载到本地 HuggingFace 缓存，或修改各脚本中的 `_LOCAL_SNAP` 路径指向自己的快照位置。
@@ -33,7 +33,8 @@ Chinese-CLIP 模型 `OFA-Sys/chinese-clip-vit-base-patch16` 需提前下载到�
 ```
 .
 ├── README.md                       本文件
-├── 基于VLM的食物卡路里识别.md         原题目要求
+├── requirements.txt                Python 依赖列表
+├── 基于VLM的食物卡路里识别.md        原题目要求
 ├── ChineseFood Net 3/              数据源（需自行放置，不入库）
 ├── build_dataset.py                任务1：构建 20 类数据集（7:1:2 划分）
 ├── zero_shot.py                    任务2：零样本分类 + 6 种 prompt 模板对比
@@ -45,8 +46,8 @@ Chinese-CLIP 模型 `OFA-Sys/chinese-clip-vit-base-patch16` 需提前下载到�
 ├── scripts/
 │   ├── inspect_model.py            辅助：探查模型结构找 LoRA target_modules
 │   └── plot_confusion.py           辅助：绘制混淆矩阵
-├── reports/
-│   └── 王铭翔 - 小作业实验报告.pdf   实验报告（不入库）
+├── report/
+│   └── 王铭翔 - 小作业实验报告.pdf   实验报告
 ├── dataset_20cls/                  构建好的数据集（由 build_dataset.py 生成）
 └── results/                        预测明细、adapter 权重、混淆矩阵图
     ├── lora_adapter/               LoRA 训练权重（2.4MB）
