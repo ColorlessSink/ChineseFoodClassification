@@ -1,3 +1,12 @@
+'''
+任务3-2-2：LoRA微调评估脚本
+---
+流程：
+  1. 加载Base模型和adapter
+  2. 对test计算相似度和准确率
+  3. 保存结果到results/
+'''
+
 import os, json
 import pandas as pd
 from transformers import ChineseCLIPProcessor, ChineseCLIPModel

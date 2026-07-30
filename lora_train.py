@@ -1,3 +1,15 @@
+'''
+任务3-2-1：LoRA微调训练脚本
+---
+流程：
+  1. 自定义FoodDataset，继承自Dataset，重写__init__(), __len__(), __getitem__()
+  2. 自定义collate_fn，传入Dataloader
+  3. 冻结模型，注入lora
+  4. 实现InfoNCE对比学习逻辑
+  5. 每次训练循环后评测val，防止过拟合
+  6. 保存识别val准确率最高的adapter
+'''
+
 import os, time, json, random
 from PIL import Image
 import pandas as pd

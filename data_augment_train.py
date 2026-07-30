@@ -1,3 +1,12 @@
+'''
+任务3-3-1：带数据增强的LoRA微调训练脚本
+---
+流程：
+  1. 使用OpenCV编写3种图像增强方式
+  2. 复用lora_train.py中的训练函数进行训练
+  3. 保存结果到results/lora_adapter_aug/
+'''
+
 import os, json, random
 import numpy as np
 from PIL import Image

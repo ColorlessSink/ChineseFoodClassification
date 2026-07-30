@@ -7,7 +7,7 @@
   3. 用图像编码器提取支持集特征
   4. 每类特征求平均，得到类别prototype
   5. 测试图像与prototype计算预先相似度
-  5. 输出Top-1/Top-5准确率，与baseline对比并保存结果到results/
+  6. 输出Top-1/Top-5准确率，与baseline对比并保存结果到results/
 '''
 
 import os, time, json, random

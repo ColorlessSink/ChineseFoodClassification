@@ -15,7 +15,7 @@ from collections import defaultdict
 import pandas as pd
 
 
-SRC = os.path.join(os.path.dirname(__file__), "..", "ChineseFood Net 3", "release_data")     # 划分的数据来源于上级的ChineseFoodNet目录
+SRC = os.path.join(os.path.dirname(__file__), "ChineseFood Net 3", "release_data")     # 划分的数据来源于同级的ChineseFoodNet目录
 SRC = os.path.normpath(SRC)
 OUT = os.path.join(os.path.dirname(__file__), "dataset_20cls")
 
@@ -86,13 +86,13 @@ for i in ("train", "val", "test"):
 # 按类抽样并复制
 random.seed(SEED)
 
-records = []     # (split, rel_path, new_idx)
-classes_rows = []     # (new_idx, zh, en, orig_id)
+records = []     
+classes_rows = []
 
 for new_idx, (orig_id, zh, en) in enumerate(SEL):
-    all_imgs = by_class[orig_id]     # [(fs_rel, split)]
+    all_imgs = by_class[orig_id]
     random.shuffle(all_imgs)
-    # 优先取test/里的图作为测试集（这些是真实“未见”图），其余从train里抽
+    # 优先取test/里的图作为测试集，其余从train里抽
     test_pool  = [x for x in all_imgs if x[1] == "test"]
     train_pool = [x for x in all_imgs if x[1] == "train"]
 
@@ -100,14 +100,14 @@ for new_idx, (orig_id, zh, en) in enumerate(SEL):
     n_val = PER_CLASS_VAL
     n_test = PER_CLASS_TEST
 
-    chosen = []  # (fs_rel, target_split)
-    # 先填 test
+    chosen = []
+    # 先填test
     chosen += [(p, "test") for p, _ in test_pool[:n_test]]
     if len([c for c in chosen if c[1] == "test"]) < n_test:
         need = n_test - len([c for c in chosen if c[1] == "test"])
         chosen += [(p, "test") for p, _ in train_pool[:need]]
         train_pool = train_pool[need:]
-    # 再填 train / val
+    # 再填train/val
     val_sel = train_pool[:n_val];   train_pool = train_pool[n_val:]
     train_sel = train_pool[:n_train]
     chosen += [(p, "val")   for p, _ in val_sel]
@@ -119,7 +119,7 @@ for new_idx, (orig_id, zh, en) in enumerate(SEL):
         src_path = os.path.join(SRC, fs_rel)
         dst_dir = os.path.join(OUT, target_split, folder_name)
         os.makedirs(dst_dir, exist_ok=True)
-        # 用全局唯一文件名避免不同 split 同名覆盖
+        # 用全局唯一文件名避免不同split同名覆盖
         fname = f"{new_idx:02d}_{os.path.basename(fs_rel)}"
         dst_path = os.path.join(dst_dir, fname)
         shutil.copyfile(src_path, dst_path)

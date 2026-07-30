@@ -1,2 +1,5 @@
-dataset_20cls
+ChineseFood Net 3
 __pycache__
+report
+*.pyc
+.claude
